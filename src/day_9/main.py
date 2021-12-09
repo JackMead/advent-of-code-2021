@@ -1,9 +1,12 @@
 from src.helpers.files import load_txt_file
+from functools import reduce
 
 def run():
     input = load_txt_file('./src/day_9/input.txt')
     risk_score_total = sum_risk_scores(input)
     print(f"Day 9 Q1: Total risk score = {risk_score_total}")
+    basin_score = total_basin_score(input)
+    print(f"Day 9 Q2: Total basin score = {basin_score}")
 
 def sum_risk_scores(input):
     grid = build_grid(input)
@@ -11,6 +14,31 @@ def sum_risk_scores(input):
     height_of_low_points = get_height_of_low_points(low_points)
     risk_scores = get_risk_scores(height_of_low_points)
     return sum(risk_scores)
+
+def total_basin_score(input):
+    grid = build_grid(input)
+    low_points = find_low_points(grid)
+    basin_sizes = [get_size_of_basin_for_low_point(low_point, grid) for low_point in low_points]
+    three_largest_basins = sorted(basin_sizes)[-3:]
+    return reduce((lambda x, y: x * y), three_largest_basins)
+
+count = -1
+def get_size_of_basin_for_low_point(low_point, grid):
+    points_seen = [low_point]
+    queue = points_seen.copy()
+
+    while len(queue) > 0:
+        point = queue.pop(0)
+        points_to_compare = []
+        add_point_if_valid(points_to_compare, point.row, point.col - 1, grid)
+        add_point_if_valid(points_to_compare, point.row, point.col + 1, grid)
+        add_point_if_valid(points_to_compare, point.row - 1, point.col, grid)
+        add_point_if_valid(points_to_compare, point.row + 1, point.col, grid)
+        for point_to_check in points_to_compare:
+            if point_to_check not in points_seen and point_to_check.height < 9:
+                points_seen.append(point_to_check)
+                queue.append(point_to_check)
+    return len(points_seen)
 
 class InvalidPointException(Exception):
     pass
@@ -22,6 +50,9 @@ class Point():
         self.row = row
         self.col = col
         self.height = grid[row][col]
+
+    def __eq__(self, other):
+        return self.row == other.row and self.col == other.col
 
 def find_low_points(grid):
     low_points = []
