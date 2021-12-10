@@ -9,5 +9,5 @@ Run tests: `poetry run pytest`
 Run solution for day X: `poetry run day<X>`
 
 Adding new solutions:
-* Follow the pattern
-* Don't forget to add a shortcut for running it into pyproject.toml
+* `poetry run python create_day.py`
+* Type in the relevant day when prompted
