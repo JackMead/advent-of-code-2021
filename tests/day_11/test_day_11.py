@@ -8,4 +8,5 @@ def test_q1():
     assert count == 1656
 
 def test_q2():
-    pass
+    timer = find_first_sim_flash(test_input)
+    assert timer == 195
