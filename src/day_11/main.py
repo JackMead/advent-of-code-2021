@@ -6,3 +6,6 @@ def run():
     print(f"Day 11 Q1: ")
 
     print(f"Day 11 Q2: ")
+
+def count_flashes_after_100_steps(input):
+    return 0

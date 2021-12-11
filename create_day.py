@@ -18,7 +18,7 @@ def find_and_replace_in_file(filepath, old, new):
 shutil.copytree('./src/template_day', f'./src/day_{day_number}', ignore=shutil.ignore_patterns('*.pyc', '__pycache__', 'input.txt'))
 
 os.makedirs(f'./tests/day_{day_number}')
-shutil.copyfile('./tests/template_tests/test_day.py', f'./tests/day_{day_number}/test_day_{day_number}.py')
+shutil.copyfile('./tests/template_tests/day.py', f'./tests/day_{day_number}/test_day_{day_number}.py')
 shutil.copyfile('./tests/template_tests/__init__.py', f'./tests/day_{day_number}/__init__.py')
 
 find_and_replace_in_file(f'./tests/day_{day_number}/test_day_{day_number}.py', 'X', day_number)

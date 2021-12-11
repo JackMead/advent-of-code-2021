@@ -4,7 +4,8 @@ from src.day_11.main import *
 test_input = load_txt_file('./tests/day_11/test_input.txt')
 
 def test_q1():
-    pass
+    count = count_flashes_after_100_steps(test_input)
+    assert count == 1656
 
 def test_q2():
     pass
