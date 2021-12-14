@@ -20,6 +20,7 @@ shutil.copytree('./src/template_day', f'./src/day_{day_number}', ignore=shutil.i
 os.makedirs(f'./tests/day_{day_number}')
 shutil.copyfile('./tests/template_tests/day.py', f'./tests/day_{day_number}/test_day_{day_number}.py')
 shutil.copyfile('./tests/template_tests/__init__.py', f'./tests/day_{day_number}/__init__.py')
+shutil.copyfile('./tests/template_tests/test_input.txt', f'./tests/day_{day_number}/test_input.txt')
 
 find_and_replace_in_file(f'./tests/day_{day_number}/test_day_{day_number}.py', 'X', day_number)
 find_and_replace_in_file(f'./src/day_{day_number}/main.py', 'X', day_number)
