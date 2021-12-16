@@ -1,15 +1,21 @@
 from src.helpers.files import load_txt_file
+from functools import reduce
 
 def run():
     input = load_txt_file('./src/day_16/input.txt')
     version_sum = sum_packet_versions(input[0])
     print(f"Day 16 Q1: version sum = {version_sum}")
-
-    print(f"Day 16 Q2: ")
+    value = get_packet_value(input[0])
+    print(f"Day 16 Q2: value = {value}")
 
 def sum_packet_versions(input):
     packets = get_packets(input)
     return total_version_sum(packets)
+
+def get_packet_value(input_string):
+    input_as_bits = bin(int(input_string, 16))[2:]
+    _, packet = get_packet_from_bits(input_as_bits)
+    return packet.get_value()
 
 class Packet():
     def __init__(self, version, type_id):
@@ -27,6 +33,9 @@ class LiteralPacket(Packet):
         extra_bits_from_literal = (literal_length // 4) * 5
         return 6 + extra_bits_from_literal
 
+    def get_value(self):
+        return self.literal
+
 class OperatorPacket(Packet):
     def __init__(self, version, type_id, length_type_id, sub_packets):
         super(OperatorPacket, self).__init__(version, type_id)
@@ -37,8 +46,25 @@ class OperatorPacket(Packet):
         header_length = 22 if self.length_type_id == 0 else 18
         return header_length + sum([packet.get_len() for packet in self.sub_packets])
 
+    def get_value(self):
+        packet_values = [packet.get_value() for packet in self.sub_packets]
+        if self.type_id == 0:
+            return sum(packet_values)
+        if self.type_id == 1:
+            return reduce((lambda x, y: x * y), packet_values)
+        if self.type_id == 2:
+            return min(packet_values)
+        if self.type_id == 3:
+            return max(packet_values)
+        if self.type_id == 5:
+            return 1 if packet_values[0] > packet_values[1] else 0
+        if self.type_id == 6:
+            return 1 if packet_values[0] < packet_values[1] else 0
+        if self.type_id == 7:
+            return 1 if packet_values[0] == packet_values[1] else 0
+        raise Exception(f"Type id {self.type_id} not valid")
+
 def get_packet_from_bits(bits):
-    print(f"Input bits: {bits}")
     version = int(bits[0:3], 2)
     type_id = int(bits[3:6], 2)
     if type_id == 4:
@@ -79,28 +105,12 @@ def get_operator_packet(version, type_id, bits):
     num_bits = 0
     sub_packets = []
     version_under_test = 3
-    if (version == version_under_test):
-        print(f"V{version_under_test}")
-        print(bits)
-        print(condition)
-        print(condition_value)
-        print(sub_packets)
     while(not stop_condition.is_met(num_packets, num_bits)):
-        if version == version_under_test:
-            print(f"Starting bit: {starting_bit}")
-            print(bits[starting_bit:])
         starting_bit, packet = return_next_internal_packet(starting_bit, bits)
-        if version == version_under_test:
-            print(f"sub version: {packet.version}")
         num_packets += 1
         num_bits += packet.get_len()
         sub_packets.append(packet)
 
-    if (version == version_under_test):
-        print(bits)
-        print(condition)
-        print(condition_value)
-        print(sub_packets)
     first_unused_bit = starting_bit
     return first_unused_bit, OperatorPacket(version, type_id, length_type_id, sub_packets)
 
