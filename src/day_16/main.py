@@ -38,6 +38,7 @@ class OperatorPacket(Packet):
         return header_length + sum([packet.get_len() for packet in self.sub_packets])
 
 def get_packet_from_bits(bits):
+    print(f"Input bits: {bits}")
     version = int(bits[0:3], 2)
     type_id = int(bits[3:6], 2)
     if type_id == 4:
@@ -77,18 +78,29 @@ def get_operator_packet(version, type_id, bits):
     num_packets = 0
     num_bits = 0
     sub_packets = []
-    if (version == 3):
-        print("V5")
+    version_under_test = 3
+    if (version == version_under_test):
+        print(f"V{version_under_test}")
         print(bits)
         print(condition)
         print(condition_value)
         print(sub_packets)
     while(not stop_condition.is_met(num_packets, num_bits)):
+        if version == version_under_test:
+            print(f"Starting bit: {starting_bit}")
+            print(bits[starting_bit:])
         starting_bit, packet = return_next_internal_packet(starting_bit, bits)
+        if version == version_under_test:
+            print(f"sub version: {packet.version}")
         num_packets += 1
         num_bits += packet.get_len()
         sub_packets.append(packet)
 
+    if (version == version_under_test):
+        print(bits)
+        print(condition)
+        print(condition_value)
+        print(sub_packets)
     first_unused_bit = starting_bit
     return first_unused_bit, OperatorPacket(version, type_id, length_type_id, sub_packets)
 
@@ -98,7 +110,6 @@ def return_next_internal_packet(starting_bit, bits):
 
 def get_packets(input_string):
     input_as_bits = bin(int(input_string, 16))[2:]
-    print(f"Input: {input_as_bits}")
     _, packet = get_packet_from_bits(input_as_bits)
     packets = [packet]
     subs = [] if isinstance(packet, LiteralPacket) else packet.sub_packets
