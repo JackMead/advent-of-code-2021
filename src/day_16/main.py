@@ -13,7 +13,7 @@ def sum_packet_versions(input):
     return total_version_sum(packets)
 
 def get_packet_value(input_string):
-    input_as_bits = bin(int(input_string, 16))[2:]
+    input_as_bits = get_input_as_bits(input_string)
     _, packet = get_packet_from_bits(input_as_bits)
     return packet.get_value()
 
@@ -95,6 +95,8 @@ class StopCondition():
         raise Exception("Packet lied")
 
 def get_operator_packet(version, type_id, bits):
+    print("Getting operator")
+    print(bits)
     length_type_id = int(bits[6])
     condition = 'PACKET_LENGTH' if length_type_id == 0 else 'PACKET_NUMBER'
     condition_value = bits[7:22] if length_type_id == 0 else bits[7:18]
@@ -104,13 +106,18 @@ def get_operator_packet(version, type_id, bits):
     num_packets = 0
     num_bits = 0
     sub_packets = []
-    version_under_test = 3
     while(not stop_condition.is_met(num_packets, num_bits)):
+        print(f"Seen: {num_packets} packets")
+        print(f"Seen: {num_bits} bits")
+        print(f"stop on {condition}: {int(condition_value, 2)}")
         starting_bit, packet = return_next_internal_packet(starting_bit, bits)
         num_packets += 1
         num_bits += packet.get_len()
         sub_packets.append(packet)
 
+    print(f"Seen: {num_packets} packets")
+    print(f"Seen: {num_bits} bits")
+    print(f"stop on {condition}: {int(condition_value, 2)}")
     first_unused_bit = starting_bit
     return first_unused_bit, OperatorPacket(version, type_id, length_type_id, sub_packets)
 
@@ -118,8 +125,15 @@ def return_next_internal_packet(starting_bit, bits):
     first_unused_bit, packet = get_packet_from_bits(bits[starting_bit:])
     return starting_bit + first_unused_bit, packet
 
+def get_input_as_bits(input_string):
+    hex_size = len(input_string) 
+    final_bin_size = hex_size * 4
+    binary_string = bin(int(input_string, 16))[2:]
+    padded_binary = binary_string.zfill(final_bin_size)
+    return padded_binary
+
 def get_packets(input_string):
-    input_as_bits = bin(int(input_string, 16))[2:]
+    input_as_bits = get_input_as_bits(input_string)
     _, packet = get_packet_from_bits(input_as_bits)
     packets = [packet]
     subs = [] if isinstance(packet, LiteralPacket) else packet.sub_packets
