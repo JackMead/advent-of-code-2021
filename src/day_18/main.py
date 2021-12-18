@@ -1,18 +1,33 @@
 from src.helpers.files import load_txt_file
 import json
 import math
+import copy
 
 def run():
     input = load_txt_file('./src/day_18/input.txt')
     magnitude = get_magnitude_of_sum(input)
     print(f"Day 18 Q1: magnitude = {magnitude}")
+    max_mag = get_max_magnitude_of_sum(input)
+    print(f"Day 18 Q2: max mag of sum = {max_mag}")
 
-    print(f"Day 18 Q2: ")
+def get_max_magnitude_of_sum(input):
+    nums = parse_inputs(input)
+
+    max_mag = None
+    for a in nums:
+        for b in nums:
+            if a == b:
+                continue
+            total = add_nums(a, b)
+            mag = get_magnitude(total)
+            if not max_mag or mag > max_mag:
+                max_mag = mag
+    return max_mag
 
 def get_magnitude_of_sum(input):
     array_of_nums = parse_inputs(input)
-    running_total = []
-    for i in range(0, len(array_of_nums)):
+    running_total = array_of_nums[0]
+    for i in range(1, len(array_of_nums)):
         running_total = add_nums(running_total, array_of_nums[i])
     magnitude = get_magnitude(running_total)
     return magnitude
@@ -23,7 +38,9 @@ def get_magnitude(total):
     return 3 * get_magnitude(total[0]) + 2 * get_magnitude(total[1])
 
 def add_nums(n1, n2):
-    naive_sum = add_naively(n1, n2)
+    n1c = copy.deepcopy(n1)
+    n2c = copy.deepcopy(n2)
+    naive_sum = add_naively(n1c, n2c)
     reduced_sum = reduce_num(naive_sum)
     return reduced_sum
 
@@ -31,13 +48,9 @@ def reduce_num(num):
     while True:
         exploded = explode_if_necessary(num)
         if exploded:
-            print("Exploded")
-            print(num)
             continue
         splitted = split_if_necessary(num)
         if splitted:
-            print("Split")
-            print(num)
             continue
         break
     return num
@@ -107,7 +120,6 @@ def split_if_necessary(arr):
     return False
 
 def add_naively(n1, n2):
-    # shallow, but that's OK.. I think
     new = [n1, n2]
     return new
 
