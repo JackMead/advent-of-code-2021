@@ -1,4 +1,5 @@
 from src.helpers.files import load_txt_file
+from src.helpers.perf import add_profile
 
 def run():
     input = load_txt_file('./src/day_19/input.txt')
@@ -6,7 +7,8 @@ def run():
     print(f"Day 19 Q1: there are {count} beacons")
 
     print(f"Day 19 Q2: the furthest scanners are {dist} apart")
-
+        
+@add_profile
 def count_beacons_and_dist(input):
     scanners = parse_input(input)
     match_scanners(scanners)
@@ -42,59 +44,81 @@ def try_match_scanner_pair(a, b):
 
     # theory - iterate over all pairs of beacons, and see if diff is consistent
     # if so, hypothesise and see if others match
+    matched = get_matching_beacons(known, unknown)
+
+    if len(matched) >= 12:
+        determine_unknown(matched, unknown)
+
+def determine_unknown(matched, unknown):
+    for x in get_coord_lambdas():
+        for y in get_coord_lambdas():
+            for z in get_coord_lambdas():
+                kb1 = matched[0][0]
+                ub1 = matched[0][1]
+                poss_position = (kb1.c1 - x(ub1), kb1.c2 - y(ub1), kb1.c3 - z(ub1))
+                valid = True
+                for el in matched:
+                    kbi, ubi = el
+                    if kbi.c1 != poss_position[0] + x(ubi):
+                        valid = False
+                        break
+                    if kbi.c2 != poss_position[1] + y(ubi):
+                        valid = False
+                        break
+                    if kbi.c3 != poss_position[2] + z(ubi):
+                        valid = False
+                        break
+                if valid:
+                    print(f"Matched {unknown.id}")
+                    print(f"New pos = {poss_position}")
+                    unknown.rearrange(poss_position, x, y, z)
+                    return
+
+
+def get_matching_beacons(known, unknown):
+    kb = known.beacons
+    ub = unknown.beacons
     matched = []
-    for idx_k1 in range(len(known.beacons)):
+    for idx_k1 in range(len(kb)):
+        k1 = kb[idx_k1]
+        # if k1 in [m[0] for m in matched]:
+        #     print("We go again")
+        #     print(k1)
+        #     print(matched)
+        #     continue
         count = 0
         matched_unknown = []
-        for idx_k2 in range(len(known.beacons)):
+        matched_other = None
+        for idx_k2 in range(len(kb)):
             if idx_k1 == idx_k2:
                 continue
-            for idx_u1 in range(len(unknown.beacons)):
-                for idx_u2 in range(idx_u1 + 1, len(unknown.beacons)):
-                    kb = known.beacons
-                    ub = unknown.beacons
-                    success = match_beacons(known, kb[idx_k1], kb[idx_k2], ub[idx_u1], ub[idx_u2])
+            for idx_u1 in range(len(ub)):
+                for idx_u2 in range(idx_u1 + 1, len(ub)):
+                    k2 = kb[idx_k2]
+                    u1 = ub[idx_u1]
+                    u2 = ub[idx_u2]
+                    success = match_beacons(k1, k2, u1, u2)
                     if success and count == 0:
-                        matched_unknown.append(ub[idx_u1])
-                        matched_unknown.append(ub[idx_u2])
-                        count += 1
+                        matched_unknown.append(u1)
+                        matched_unknown.append(u2)
+                        matched_other = k2
+                        count = 1
                     elif success and count == 1:
-                        count += 1
-                        if ub[idx_u1] in matched_unknown:
-                            matched.append((kb[idx_k1], ub[idx_u1]))
+                        count = 2
+                        if u1 in matched_unknown:
+                            matched.append((k1, u1))
+                            # matched.append((matched_other, u2))
                         else:
-                            matched.append((kb[idx_k1], ub[idx_u2]))
+                            matched.append((k1, u2))
+                            # matched.append((matched_other, u1))
                         break
                 if count > 1:
                     break
             if count > 1:
                 break
-
-    if len(matched) >= 12:
-        for x in get_coord_lambdas():
-            for y in get_coord_lambdas():
-                for z in get_coord_lambdas():
-                    kb1 = matched[0][0]
-                    ub1 = matched[0][1]
-                    poss_position = (kb1.c1 - x(ub1), kb1.c2 - y(ub1), kb1.c3 - z(ub1))
-                    valid = True
-                    for el in matched:
-                        kbi, ubi = el
-                        if kbi.c1 != poss_position[0] + x(ubi):
-                            valid = False
-                            break
-                        if kbi.c2 != poss_position[1] + y(ubi):
-                            valid = False
-                            break
-                        if kbi.c3 != poss_position[2] + z(ubi):
-                            valid = False
-                            break
-                    if valid:
-                        print(f"Matched {unknown.id}")
-                        print(f"New pos = {poss_position}")
-                        unknown.rearrange(poss_position, x, y, z)
-
-                        return
+        if len(matched) >= 12:
+            break
+    return matched
 
 def get_coord_lambdas():
     return [
@@ -106,7 +130,7 @@ def get_coord_lambdas():
         lambda b: -b.c3
     ]
 
-def match_beacons(known, k1, k2, u1, u2):
+def match_beacons(k1, k2, u1, u2):
     known_diffs = [k1.c1 - k2.c1, k1.c2 - k2.c2, k1.c3 - k2.c3]
     unknown_diffs = [u1.c1 - u2.c1, u1.c2 - u2.c2, u1.c3 - u2.c3]
     return diffs_match(known_diffs, unknown_diffs)
@@ -121,7 +145,7 @@ def add_match(match, coord, k, unknowns):
 
 def diffs_match(d1, d2):
     for d in d1:
-        if d not in d2 and (-1 * d) not in d2:
+        if d not in d2 and (-d) not in d2:
             return False
     return True
 
