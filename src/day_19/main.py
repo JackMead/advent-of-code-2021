@@ -87,6 +87,7 @@ def get_matching_beacons(known, unknown):
     kb = known.beacons
     ub = unknown.beacons
     matched = []
+    to_find = ub.copy()
     for idx_k1 in range(len(kb)):
         k1 = kb[idx_k1]
         if k1 in [m[0] for m in matched]:
@@ -94,14 +95,12 @@ def get_matching_beacons(known, unknown):
         count = 0
         matched_unknown = []
         matched_other = None
-        for idx_k2 in range(len(kb)):
-            if idx_k1 == idx_k2:
-                continue
-            for idx_u1 in range(len(ub)):
-                for idx_u2 in range(idx_u1 + 1, len(ub)):
+        for idx_k2 in range(idx_k1 + 1, len(kb)):
+            for idx_u1 in range(len(to_find)):
+                for idx_u2 in range(idx_u1 + 1, len(to_find)):
                     k2 = kb[idx_k2]
-                    u1 = ub[idx_u1]
-                    u2 = ub[idx_u2]
+                    u1 = to_find[idx_u1]
+                    u2 = to_find[idx_u2]
                     success = match_beacons(k1, k2, u1, u2)
                     if success and count == 0:
                         matched_unknown.append(u1)
@@ -114,12 +113,16 @@ def get_matching_beacons(known, unknown):
                             matched.append((k1, u1))
                             other_unknown = [o for o in matched_unknown if o != u1][0]
                             matched.append((matched_other, other_unknown))
+                            to_find.remove(other_unknown)
                             matched.append((k2, u2))
                         else:
                             matched.append((k1, u2))
                             other_unknown = [o for o in matched_unknown if o != u2][0]
                             matched.append((matched_other, other_unknown))
+                            to_find.remove(other_unknown)
                             matched.append((k2, u1))
+                        to_find.remove(u1)
+                        to_find.remove(u2)
                         break
                 if count > 1:
                     break
