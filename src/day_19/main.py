@@ -2,16 +2,28 @@ from src.helpers.files import load_txt_file
 
 def run():
     input = load_txt_file('./src/day_19/input.txt')
-    count = count_beacons(input)
+    count, dist = count_beacons_and_dist(input)
     print(f"Day 19 Q1: there are {count} beacons")
 
-    print(f"Day 19 Q2: ")
+    print(f"Day 19 Q2: the furthest scanners are {dist} apart")
 
-def count_beacons(input):
+def count_beacons_and_dist(input):
     scanners = parse_input(input)
     match_scanners(scanners)
     beacons = get_actual_beacons(scanners)
-    return len(beacons)
+    dist = get_max_manhattan_dist_between_scanners(scanners)
+    return len(beacons), dist
+
+def get_max_manhattan_dist_between_scanners(scanners):
+    max_dist = None
+    for idx_s0 in range(len(scanners)):
+        for idx_s1 in range(idx_s0 + 1, len(scanners)):
+            s0 = scanners[idx_s0]
+            s1 = scanners[idx_s1]
+            dist = abs(s0.x - s1.x) + abs(s0.y - s1.y) + abs(s0.z - s1.z)
+            if not max_dist or dist > max_dist:
+                max_dist = dist
+    return max_dist
 
 def match_scanners(scanners):
     while(any_scanner_unmatched(scanners)):
@@ -52,13 +64,12 @@ def try_match_scanner_pair(a, b):
                             matched.append((kb[idx_k1], ub[idx_u1]))
                         else:
                             matched.append((kb[idx_k1], ub[idx_u2]))
+                        break
+                if count > 1:
+                    break
+            if count > 1:
+                break
 
-    # for el in matched:
-    #     k = el[0]
-    #     u = el[1]
-    #     print(f"s0: {k}")
-    #     print(f"s1: {u}")
-    # print(matched)
     if len(matched) >= 12:
         for x in get_coord_lambdas():
             for y in get_coord_lambdas():
@@ -82,6 +93,7 @@ def try_match_scanner_pair(a, b):
                         print(f"Matched {unknown.id}")
                         print(f"New pos = {poss_position}")
                         unknown.rearrange(poss_position, x, y, z)
+
                         return
 
 def get_coord_lambdas():
