@@ -106,10 +106,12 @@ def get_matching_beacons(known, unknown):
                             matched.append((k1, u1))
                             other_unknown = [o for o in matched_unknown if o != u1][0]
                             matched.append((matched_other, other_unknown))
+                            matched.append((k2, u2))
                         else:
                             matched.append((k1, u2))
                             other_unknown = [o for o in matched_unknown if o != u2][0]
                             matched.append((matched_other, other_unknown))
+                            matched.append((k2, u1))
                         break
                 if count > 1:
                     break
