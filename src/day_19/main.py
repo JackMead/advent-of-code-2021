@@ -81,11 +81,8 @@ def get_matching_beacons(known, unknown):
     matched = []
     for idx_k1 in range(len(kb)):
         k1 = kb[idx_k1]
-        # if k1 in [m[0] for m in matched]:
-        #     print("We go again")
-        #     print(k1)
-        #     print(matched)
-        #     continue
+        if k1 in [m[0] for m in matched]:
+            continue
         count = 0
         matched_unknown = []
         matched_other = None
@@ -107,10 +104,12 @@ def get_matching_beacons(known, unknown):
                         count = 2
                         if u1 in matched_unknown:
                             matched.append((k1, u1))
-                            # matched.append((matched_other, u2))
+                            other_unknown = [o for o in matched_unknown if o != u1][0]
+                            matched.append((matched_other, other_unknown))
                         else:
                             matched.append((k1, u2))
-                            # matched.append((matched_other, u1))
+                            other_unknown = [o for o in matched_unknown if o != u2][0]
+                            matched.append((matched_other, other_unknown))
                         break
                 if count > 1:
                     break
