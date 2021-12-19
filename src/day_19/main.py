@@ -28,17 +28,22 @@ def get_max_manhattan_dist_between_scanners(scanners):
     return max_dist
 
 def match_scanners(scanners):
+    dont_match = []
     while(any_scanner_unmatched(scanners)):
         for i in range(len(scanners)):
             for j in range(i + 1, len(scanners)):
-                try_match_scanner_pair(scanners[i], scanners[j])
+                if (i,j) in dont_match:
+                    continue
+                could_match = try_match_scanner_pair(scanners[i], scanners[j])
+                if not could_match:
+                    dont_match.append((i,j))
 
 def any_scanner_unmatched(scanners):
     return any([not scanner.is_located() for scanner in scanners])
 
 def try_match_scanner_pair(a, b):
     if a.is_located() == b.is_located():
-        return
+        return True
     known = [s for s in [a,b] if s.is_located()][0]
     unknown = [s for s in [a,b] if not s.is_located()][0]
 
@@ -48,6 +53,9 @@ def try_match_scanner_pair(a, b):
 
     if len(matched) >= 12:
         determine_unknown(matched, unknown)
+        return True
+    else:
+        return False
 
 def determine_unknown(matched, unknown):
     for x in get_coord_lambdas():
