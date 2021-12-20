@@ -21,7 +21,6 @@ def count_lights_after_two_enhancements(input):
     count = count_lights_in_image(output_image)
     return count
 
-@add_profile
 def count_lights_after_50_enhancements(input):
     algorithm, input_image = parse_input(input)
 
