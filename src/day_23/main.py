@@ -1,6 +1,7 @@
 from src.helpers.files import load_txt_file
 import networkx as nx
 from src.helpers.perf import add_profile
+import functools
 
 '''
 Graph captures below:
@@ -185,13 +186,13 @@ def is_unfinished(places):
         node = places.nodes[node_id]
         if node['room'] == 'main' and node.get('occupied'):
             return True
-        if node['room'] == 'h1' and not node['occupied'] == 'A':
+        if node['room'] == 'h1' and not node.get('occupied') == 'A':
             return True
-        if node['room'] == 'h2' and not node['occupied'] == 'B':
+        if node['room'] == 'h2' and not node.get('occupied') == 'B':
             return True
-        if node['room'] == 'h3' and not node['occupied'] == 'C':
+        if node['room'] == 'h3' and not node.get('occupied') == 'C':
             return True
-        if node['room'] == 'h4' and not node['occupied'] == 'D':
+        if node['room'] == 'h4' and not node.get('occupied') == 'D':
             return True
     return False
 
@@ -216,13 +217,19 @@ def get_all_possible_moves(places):
                 if node_id == target_node_id or target_node.get('occupied') != None:
                     continue
                 if is_valid_target(node_id, target_node_id, pod_type, places):
-                    path = nx.shortest_path(places, node_id, target_node_id)
+                    path = shortest_path(node_id, target_node_id)
                     if is_valid_path(start_node, path, places):
                         copy = make_copy(places)
                         perform_move(node_id, target_node_id, copy)
                         cost = (len(path) - 1) * get_energy_cost_per_move(pod_type)
                         moves.append((copy, cost)) 
     return moves
+
+
+empty_graph = get_extended_default_graph()
+@functools.cache
+def shortest_path(node_id, target_node_id):
+    return nx.shortest_path(empty_graph, node_id, target_node_id)
 
 def can_move_from(start_node_id, places):
     start_room = get_room_from_node(start_node_id)

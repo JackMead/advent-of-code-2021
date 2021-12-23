@@ -30,6 +30,5 @@ def test_q1():
     assert energy == 12521
 
 def test_q2():
-    return
     energy = get_full_energy_required_to_organise(test_input)
     assert energy == 44169
