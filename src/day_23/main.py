@@ -281,16 +281,21 @@ def is_valid_target(start_node_id, target_node_id, pod_type, places):
         other_space = other[start_node_id]
         if places.nodes[other_space].get('occupied') == pod_type:
             return False
-    if target_node_id in 'lnpr':
-        other = {
-            'l': 'm',
-            'n': 'o',
-            'p': 'q',
-            'r': 's'
-        }
-        other_space = other[target_node_id]
-        if places.nodes[other_space].get('occupied') != pod_type:
-            return False        
+
+    if end_room != 'main':
+        matching_hall = [n for n in hall_nodes if target_node_id in n][0]
+        i = matching_hall.index(target_node_id)
+        invalid = False
+        for j in range(i + 1, len(matching_hall)):
+            other_space = matching_hall[j]
+            other_node = places.nodes.get(other_space)
+            if other_node == None:
+                break
+            if other_node.get('occupied') != pod_type:
+                invalid = True
+                break
+        if invalid:
+            return False     
     if room_owner[end_room] not in [None, pod_type]:
         return False
     return True
