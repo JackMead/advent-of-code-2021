@@ -135,6 +135,7 @@ def get_energy_required_to_organise(lines):
 def get_full_energy_required_to_organise(lines):
     # start by finding a valid solution, don't worry about energy
     starting_places = parse_input_new(lines)
+    display_graph(starting_places)
     seen = {
         graph_as_positions(starting_places): 0
     }
@@ -216,7 +217,7 @@ def get_all_possible_moves(places):
                 if node_id == target_node_id or target_node.get('occupied') != None:
                     continue
                 if is_valid_target(node_id, target_node_id, pod_type, places):
-                    path = shortest_path(node_id, target_node_id)
+                    path = shortest_path(node_id, target_node_id, places)
                     if is_valid_path(start_node, path, places):
                         copy = make_copy(places)
                         perform_move(node_id, target_node_id, copy)
@@ -225,11 +226,11 @@ def get_all_possible_moves(places):
     return moves
 
 fastest_paths = {}
-def shortest_path(node_id, target_node_id):
+def shortest_path(node_id, target_node_id, places):
     key = (node_id, target_node_id)
     if key in fastest_paths:
         return fastest_paths[key]
-    new_path = nx.shortest_path(empty_graph, node_id, target_node_id)
+    new_path = nx.shortest_path(places, node_id, target_node_id)
     fastest_paths[key] = new_path
     return new_path
 
@@ -355,11 +356,11 @@ def parse_input_new(input):
     graph = get_extended_default_graph()
     node_dict = {
         (2,3): 'l',
-        (3,3): 'x',
+        (3,3): 'u',
         (2,5): 'n',
-        (3,5): 'y',
+        (3,5): 'w',
         (2,7): 'p',
-        (3,7): 'z',
+        (3,7): 'y',
         (2,9): 'r',
         (3,9): '$'
     }
@@ -398,4 +399,6 @@ def display_graph(g):
     print(string)
     print(f"###{nodes['l'].get('occupied', '.')}#{nodes['n'].get('occupied', '.')}#{nodes['p'].get('occupied', '.')}#{nodes['r'].get('occupied', '.')}###")
     print(f"  #{nodes['m'].get('occupied', '.')}#{nodes['o'].get('occupied', '.')}#{nodes['q'].get('occupied', '.')}#{nodes['s'].get('occupied', '.')}#")
+    print(f"  #{nodes['t'].get('occupied', '.')}#{nodes['v'].get('occupied', '.')}#{nodes['x'].get('occupied', '.')}#{nodes['z'].get('occupied', '.')}#")
+    print(f"  #{nodes['u'].get('occupied', '.')}#{nodes['w'].get('occupied', '.')}#{nodes['y'].get('occupied', '.')}#{nodes['$'].get('occupied', '.')}#")
     print("  #########")
