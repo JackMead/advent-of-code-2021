@@ -79,6 +79,16 @@ def get_extended_default_graph():
     graph.nodes['$']['room'] = 'h4'
     return graph
 
+hall_nodes = ['lmtu', 'novw', 'pqxy', 'rsz$']
+
+halls = {
+    'h1': 'lmtu',
+    'h2': 'novw',
+    'h3': 'pqxy',
+    'h4': 'rsz$',
+    'main': 'abcdefghijk'
+}
+
 room_owner = {
     'h1': 'A',
     'h2': 'B',
@@ -115,7 +125,7 @@ def get_energy_required_to_organise(lines):
             positions = graph_as_positions(place[0])
             if positions not in seen or current_energy + place[1] < seen[positions]:
                 seen[positions] = current_energy + place[1]
-                if (seen[positions] < 50000):
+                if (seen[positions] < 15000):
                     places_to_consider.append(place[0])
 
     complete = [g for g in seen.keys() if finished_pos(g)]
@@ -164,14 +174,10 @@ def graph_as_positions(g):
         elif owner == 'D':
             d.append(n)
     return (
-        min(a),
-        max(a),
-        min(b),
-        max(b),
-        min(c),
-        max(c),
-        min(d),
-        max(d),
+        tuple(a),
+        tuple(b),
+        tuple(c),
+        tuple(d)
     )
 
 def is_unfinished(places):
@@ -190,7 +196,11 @@ def is_unfinished(places):
     return False
 
 def finished_pos(pos):
-    return pos == ('l','m','n','o','p','q','r','s')
+    for i in range(len(pos)):
+        for el in pos[i]:
+            if el not in hall_nodes[i]:
+                return False
+    return True
 
 def get_all_possible_moves(places):
     if not is_unfinished(places):
@@ -198,7 +208,8 @@ def get_all_possible_moves(places):
     moves = []
     for node_id in places.nodes:
         start_node = places.nodes[node_id]
-        if start_node.get('occupied') != None:
+
+        if start_node.get('occupied') != None and can_move_from(node_id, places):
             pod_type = start_node.get('occupied')
             for target_node_id in places.nodes:
                 target_node = places.nodes[target_node_id]
@@ -213,6 +224,30 @@ def get_all_possible_moves(places):
                             cost = (len(path) - 1) * get_energy_cost_per_move(pod_type)
                             moves.append((copy, cost)) 
     return moves
+
+def can_move_from(start_node_id, places):
+    start_room = get_room_from_node(start_node_id)
+    pod_type = places.nodes[start_node_id]
+    if start_room != 'main':
+        matching_hall = [n for n in hall_nodes if start_node_id in n][0]
+        i = matching_hall.index(start_node_id)
+        for j in range(0, i):
+            if places.nodes[matching_hall[i]].get('occupied') != None:
+                return False
+
+    if room_owner[start_room] == pod_type:
+        matching_hall = [n for n in hall_nodes if start_node_id in n][0]
+        i = matching_hall.index(start_node_id)
+        all_same_type_below = True
+        for j in range(i + 1, len(matching_hall)):
+            other_space = matching_hall[j]
+            lower_node = places.nodes.get(other_space, {})
+            if lower_node.get('occupied') != pod_type:
+                all_same_type_below = False
+                break
+        if all_same_type_below:
+            return False
+    return True
 
 def perform_move(start_node_id, target_node_id, copy):
     start_node = copy.nodes[start_node_id]
@@ -233,28 +268,17 @@ def is_valid_target(start_node_id, target_node_id, pod_type, places):
     # can't move within corridor
     if start_room == end_room:
         return False
-    if room_owner[start_room] == pod_type and start_node_id in 'moqs':
-        return False
-    if room_owner[start_room] == pod_type and start_node_id in 'lnpr':
-        other = {
-            'l': 'm',
-            'n': 'o',
-            'p': 'q',
-            'r': 's'
-        }
-        other_space = other[start_node_id]
-        if places.nodes[other_space].get('occupied') == pod_type:
+    if end_room != 'main':
+        matching_hall = [n for n in hall_nodes if target_node_id in n][0]
+        i = matching_hall.index(target_node_id)
+        invalid = False
+        for j in range(i + 1, len(matching_hall)):
+            other_space = matching_hall[j]
+            if places.nodes.get(other_space, {}).get('occupied') != pod_type:
+                invalid = True
+                break
+        if invalid:
             return False
-    if target_node_id in 'lnpr':
-        other = {
-            'l': 'm',
-            'n': 'o',
-            'p': 'q',
-            'r': 's'
-        }
-        other_space = other[target_node_id]
-        if places.nodes[other_space].get('occupied') != pod_type:
-            return False        
     if room_owner[end_room] not in [None, pod_type]:
         return False
     return True
@@ -262,12 +286,20 @@ def is_valid_target(start_node_id, target_node_id, pod_type, places):
 rooms = {
     'l': 'h1',
     'm': 'h1',
+    't': 'h1',
+    'u': 'h1',
     'n': 'h2',
     'o': 'h2',
+    'v': 'h2',
+    'w': 'h2',
     'p': 'h3',
     'q': 'h3',
+    'x': 'h3',
+    'y': 'h3',
     'r': 'h4',
-    's': 'h4'
+    's': 'h4',
+    'z': 'h4',
+    '$': 'h4'
 }
 for c in 'abcdefghijk':
     rooms[c] = 'main'
