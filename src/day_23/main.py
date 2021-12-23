@@ -213,27 +213,27 @@ def get_all_possible_moves(places):
             pod_type = start_node.get('occupied')
             for target_node_id in places.nodes:
                 target_node = places.nodes[target_node_id]
-                if node_id == target_node_id:
+                if node_id == target_node_id or target_node.get('occupied') != None:
                     continue
-                if target_node.get('occupied') == None:
-                    if is_valid_target(node_id, target_node_id, pod_type, places):
-                        path = nx.shortest_path(places, node_id, target_node_id)
-                        if is_valid_path(start_node, path, places):
-                            copy = make_copy(places)
-                            perform_move(node_id, target_node_id, copy)
-                            cost = (len(path) - 1) * get_energy_cost_per_move(pod_type)
-                            moves.append((copy, cost)) 
+                if is_valid_target(node_id, target_node_id, pod_type, places):
+                    path = nx.shortest_path(places, node_id, target_node_id)
+                    if is_valid_path(start_node, path, places):
+                        copy = make_copy(places)
+                        perform_move(node_id, target_node_id, copy)
+                        cost = (len(path) - 1) * get_energy_cost_per_move(pod_type)
+                        moves.append((copy, cost)) 
     return moves
 
 def can_move_from(start_node_id, places):
     start_room = get_room_from_node(start_node_id)
-    pod_type = places.nodes[start_node_id]
-    # if start_room != 'main':
-    #     matching_hall = [n for n in hall_nodes if start_node_id in n][0]
-    #     i = matching_hall.index(start_node_id)
-    #     for j in range(0, i):
-    #         if places.nodes[matching_hall[i]].get('occupied') != None:
-    #             return False
+    pod_type = places.nodes[start_node_id].get('occupied')
+
+    if start_room != 'main':
+        matching_hall = [n for n in hall_nodes if start_node_id in n][0]
+        i = matching_hall.index(start_node_id)
+        for j in range(0, i):
+            if places.nodes[matching_hall[j]].get('occupied') != None:                
+                return False
 
     if room_owner[start_room] == pod_type:
         matching_hall = [n for n in hall_nodes if start_node_id in n][0]
@@ -241,7 +241,9 @@ def can_move_from(start_node_id, places):
         all_same_type_below = True
         for j in range(i + 1, len(matching_hall)):
             other_space = matching_hall[j]
-            lower_node = places.nodes.get(other_space, {})
+            lower_node = places.nodes.get(other_space)
+            if lower_node == None:
+                break
             if lower_node.get('occupied') != pod_type:
                 all_same_type_below = False
                 break
@@ -258,7 +260,6 @@ def perform_move(start_node_id, target_node_id, copy):
 def make_copy(places):
     return places.copy()
 
-
 def is_valid_target(start_node_id, target_node_id, pod_type, places):
     main_room_nodes = 'abcdefghijk'
     start_room = get_room_from_node(start_node_id)
@@ -269,8 +270,7 @@ def is_valid_target(start_node_id, target_node_id, pod_type, places):
     # can't move within corridor
     if start_room == end_room:
         return False
-    if room_owner[start_room] == pod_type and start_node_id in 'moqs':
-        return False
+    # can't enter hall that has the wrong type in it
     if end_room != 'main':
         matching_hall = [n for n in hall_nodes if target_node_id in n][0]
         i = matching_hall.index(target_node_id)
@@ -285,6 +285,7 @@ def is_valid_target(start_node_id, target_node_id, pod_type, places):
                 break
         if invalid:
             return False     
+    # can't move to another hallway
     if room_owner[end_room] not in [None, pod_type]:
         return False
     return True
