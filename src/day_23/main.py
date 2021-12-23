@@ -258,6 +258,7 @@ def perform_move(start_node_id, target_node_id, copy):
 def make_copy(places):
     return places.copy()
 
+
 def is_valid_target(start_node_id, target_node_id, pod_type, places):
     main_room_nodes = 'abcdefghijk'
     start_room = get_room_from_node(start_node_id)
@@ -268,17 +269,22 @@ def is_valid_target(start_node_id, target_node_id, pod_type, places):
     # can't move within corridor
     if start_room == end_room:
         return False
+    if room_owner[start_room] == pod_type and start_node_id in 'moqs':
+        return False
     if end_room != 'main':
         matching_hall = [n for n in hall_nodes if target_node_id in n][0]
         i = matching_hall.index(target_node_id)
         invalid = False
         for j in range(i + 1, len(matching_hall)):
             other_space = matching_hall[j]
-            if places.nodes.get(other_space, {}).get('occupied') != pod_type:
+            other_node = places.nodes.get(other_space)
+            if other_node == None:
+                break
+            if other_node.get('occupied') != pod_type:
                 invalid = True
                 break
         if invalid:
-            return False
+            return False      
     if room_owner[end_room] not in [None, pod_type]:
         return False
     return True
