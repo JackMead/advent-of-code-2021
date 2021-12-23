@@ -104,7 +104,6 @@ def run():
     full_energy = get_full_energy_required_to_organise(input)
     print(f"Day 23 Q2: min energy required = {full_energy}")
 
-@add_profile
 def get_energy_required_to_organise(lines):
     # start by finding a valid solution, don't worry about energy
     starting_places = parse_input(lines)
@@ -116,7 +115,6 @@ def get_energy_required_to_organise(lines):
         if len(seen) % 100 == 0:
             print(f"Queue to consider: {len(places_to_consider)}")
             print(f"Total seen: {len(seen)}")
-            print(f"Approx percent: {100 * len(seen) / 50000}")
         origin = places_to_consider.pop(0)
         new_places_and_costs = get_all_possible_moves(origin)
         origin_pos = graph_as_positions(origin)
@@ -131,7 +129,6 @@ def get_energy_required_to_organise(lines):
     complete = [g for g in seen.keys() if finished_pos(g)]
     return min([seen[c] for c in complete])
 
-@add_profile
 def get_full_energy_required_to_organise(lines):
     # start by finding a valid solution, don't worry about energy
     starting_places = parse_input_new(lines)
@@ -144,7 +141,6 @@ def get_full_energy_required_to_organise(lines):
         if len(seen) % 100 == 0:
             print(f"Queue to consider: {len(places_to_consider)}")
             print(f"Total seen: {len(seen)}")
-            print(f"Approx percent: {100 * len(seen) / 50000}")
         origin = places_to_consider.pop()
         new_places_and_costs = get_all_possible_moves(origin)
         origin_pos = graph_as_positions(origin)
