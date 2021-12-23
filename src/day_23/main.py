@@ -1,7 +1,6 @@
 from src.helpers.files import load_txt_file
 import networkx as nx
 from src.helpers.perf import add_profile
-import functools
 
 '''
 Graph captures below:
@@ -225,11 +224,14 @@ def get_all_possible_moves(places):
                         moves.append((copy, cost)) 
     return moves
 
-
-empty_graph = get_extended_default_graph()
-@functools.cache
+fastest_paths = {}
 def shortest_path(node_id, target_node_id):
-    return nx.shortest_path(empty_graph, node_id, target_node_id)
+    key = (node_id, target_node_id)
+    if key in fastest_paths:
+        return fastest_paths[key]
+    new_path = nx.shortest_path(empty_graph, node_id, target_node_id)
+    fastest_paths[key] = new_path
+    return new_path
 
 def can_move_from(start_node_id, places):
     start_room = get_room_from_node(start_node_id)
