@@ -1,5 +1,6 @@
 from src.helpers.files import load_txt_file
 from src.day_23.main import *
+import pytest
 
 test_input = load_txt_file('./tests/day_23/test_input.txt')
 test_input_2 = load_txt_file('./tests/day_23/test_input_2.txt')
@@ -25,11 +26,12 @@ def test_simple_swap():
     energy = get_energy_required_to_organise(test_input_2)
     assert energy == 4646
 
+@pytest.mark.skip(reason = "Slowwww")
 def test_q1():
     energy = get_energy_required_to_organise(test_input)
     assert energy == 12521
 
+@pytest.mark.skip(reason = "Slowwww")
 def test_q2():
-    return
     energy = get_full_energy_required_to_organise(test_input)
     assert energy == 44169

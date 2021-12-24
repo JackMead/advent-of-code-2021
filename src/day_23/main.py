@@ -79,6 +79,16 @@ def get_extended_default_graph():
     graph.nodes['$']['room'] = 'h4'
     return graph
 
+hall_nodes = ['lmtu', 'novw', 'pqxy', 'rsz$']
+
+halls = {
+    'h1': 'lmtu',
+    'h2': 'novw',
+    'h3': 'pqxy',
+    'h4': 'rsz$',
+    'main': 'abcdefghijk'
+}
+
 room_owner = {
     'h1': 'A',
     'h2': 'B',
@@ -94,7 +104,6 @@ def run():
     full_energy = get_full_energy_required_to_organise(input)
     print(f"Day 23 Q2: min energy required = {full_energy}")
 
-@add_profile
 def get_energy_required_to_organise(lines):
     # start by finding a valid solution, don't worry about energy
     starting_places = parse_input(lines)
@@ -106,7 +115,6 @@ def get_energy_required_to_organise(lines):
         if len(seen) % 100 == 0:
             print(f"Queue to consider: {len(places_to_consider)}")
             print(f"Total seen: {len(seen)}")
-            print(f"Approx percent: {100 * len(seen) / 50000}")
         origin = places_to_consider.pop(0)
         new_places_and_costs = get_all_possible_moves(origin)
         origin_pos = graph_as_positions(origin)
@@ -115,16 +123,16 @@ def get_energy_required_to_organise(lines):
             positions = graph_as_positions(place[0])
             if positions not in seen or current_energy + place[1] < seen[positions]:
                 seen[positions] = current_energy + place[1]
-                if (seen[positions] < 50000):
+                if (seen[positions] < 15000):
                     places_to_consider.append(place[0])
 
     complete = [g for g in seen.keys() if finished_pos(g)]
     return min([seen[c] for c in complete])
 
-@add_profile
 def get_full_energy_required_to_organise(lines):
     # start by finding a valid solution, don't worry about energy
     starting_places = parse_input_new(lines)
+    display_graph(starting_places)
     seen = {
         graph_as_positions(starting_places): 0
     }
@@ -133,7 +141,6 @@ def get_full_energy_required_to_organise(lines):
         if len(seen) % 100 == 0:
             print(f"Queue to consider: {len(places_to_consider)}")
             print(f"Total seen: {len(seen)}")
-            print(f"Approx percent: {100 * len(seen) / 50000}")
         origin = places_to_consider.pop()
         new_places_and_costs = get_all_possible_moves(origin)
         origin_pos = graph_as_positions(origin)
@@ -164,14 +171,10 @@ def graph_as_positions(g):
         elif owner == 'D':
             d.append(n)
     return (
-        min(a),
-        max(a),
-        min(b),
-        max(b),
-        min(c),
-        max(c),
-        min(d),
-        max(d),
+        tuple(a),
+        tuple(b),
+        tuple(c),
+        tuple(d)
     )
 
 def is_unfinished(places):
@@ -179,18 +182,22 @@ def is_unfinished(places):
         node = places.nodes[node_id]
         if node['room'] == 'main' and node.get('occupied'):
             return True
-        if node['room'] == 'h1' and not node['occupied'] == 'A':
+        if node['room'] == 'h1' and not node.get('occupied') == 'A':
             return True
-        if node['room'] == 'h2' and not node['occupied'] == 'B':
+        if node['room'] == 'h2' and not node.get('occupied') == 'B':
             return True
-        if node['room'] == 'h3' and not node['occupied'] == 'C':
+        if node['room'] == 'h3' and not node.get('occupied') == 'C':
             return True
-        if node['room'] == 'h4' and not node['occupied'] == 'D':
+        if node['room'] == 'h4' and not node.get('occupied') == 'D':
             return True
     return False
 
 def finished_pos(pos):
-    return pos == ('l','m','n','o','p','q','r','s')
+    for i in range(len(pos)):
+        for el in pos[i]:
+            if el not in hall_nodes[i]:
+                return False
+    return True
 
 def get_all_possible_moves(places):
     if not is_unfinished(places):
@@ -198,21 +205,57 @@ def get_all_possible_moves(places):
     moves = []
     for node_id in places.nodes:
         start_node = places.nodes[node_id]
-        if start_node.get('occupied') != None:
+
+        if start_node.get('occupied') != None and can_move_from(node_id, places):
             pod_type = start_node.get('occupied')
             for target_node_id in places.nodes:
                 target_node = places.nodes[target_node_id]
-                if node_id == target_node_id:
+                if node_id == target_node_id or target_node.get('occupied') != None:
                     continue
-                if target_node.get('occupied') == None:
-                    if is_valid_target(node_id, target_node_id, pod_type, places):
-                        path = nx.shortest_path(places, node_id, target_node_id)
-                        if is_valid_path(start_node, path, places):
-                            copy = make_copy(places)
-                            perform_move(node_id, target_node_id, copy)
-                            cost = (len(path) - 1) * get_energy_cost_per_move(pod_type)
-                            moves.append((copy, cost)) 
+                if is_valid_target(node_id, target_node_id, pod_type, places):
+                    path = shortest_path(node_id, target_node_id, places)
+                    if is_valid_path(start_node, path, places):
+                        copy = make_copy(places)
+                        perform_move(node_id, target_node_id, copy)
+                        cost = (len(path) - 1) * get_energy_cost_per_move(pod_type)
+                        moves.append((copy, cost)) 
     return moves
+
+fastest_paths = {}
+def shortest_path(node_id, target_node_id, places):
+    key = (node_id, target_node_id)
+    if key in fastest_paths:
+        return fastest_paths[key]
+    new_path = nx.shortest_path(places, node_id, target_node_id)
+    fastest_paths[key] = new_path
+    return new_path
+
+def can_move_from(start_node_id, places):
+    start_room = get_room_from_node(start_node_id)
+    pod_type = places.nodes[start_node_id].get('occupied')
+
+    if start_room != 'main':
+        matching_hall = [n for n in hall_nodes if start_node_id in n][0]
+        i = matching_hall.index(start_node_id)
+        for j in range(0, i):
+            if places.nodes[matching_hall[j]].get('occupied') != None:                
+                return False
+
+    if room_owner[start_room] == pod_type:
+        matching_hall = [n for n in hall_nodes if start_node_id in n][0]
+        i = matching_hall.index(start_node_id)
+        all_same_type_below = True
+        for j in range(i + 1, len(matching_hall)):
+            other_space = matching_hall[j]
+            lower_node = places.nodes.get(other_space)
+            if lower_node == None:
+                break
+            if lower_node.get('occupied') != pod_type:
+                all_same_type_below = False
+                break
+        if all_same_type_below:
+            return False
+    return True
 
 def perform_move(start_node_id, target_node_id, copy):
     start_node = copy.nodes[start_node_id]
@@ -233,28 +276,22 @@ def is_valid_target(start_node_id, target_node_id, pod_type, places):
     # can't move within corridor
     if start_room == end_room:
         return False
-    if room_owner[start_room] == pod_type and start_node_id in 'moqs':
-        return False
-    if room_owner[start_room] == pod_type and start_node_id in 'lnpr':
-        other = {
-            'l': 'm',
-            'n': 'o',
-            'p': 'q',
-            'r': 's'
-        }
-        other_space = other[start_node_id]
-        if places.nodes[other_space].get('occupied') == pod_type:
-            return False
-    if target_node_id in 'lnpr':
-        other = {
-            'l': 'm',
-            'n': 'o',
-            'p': 'q',
-            'r': 's'
-        }
-        other_space = other[target_node_id]
-        if places.nodes[other_space].get('occupied') != pod_type:
-            return False        
+    # can't enter hall that has the wrong type in it
+    if end_room != 'main':
+        matching_hall = [n for n in hall_nodes if target_node_id in n][0]
+        i = matching_hall.index(target_node_id)
+        invalid = False
+        for j in range(i + 1, len(matching_hall)):
+            other_space = matching_hall[j]
+            other_node = places.nodes.get(other_space)
+            if other_node == None:
+                break
+            if other_node.get('occupied') != pod_type:
+                invalid = True
+                break
+        if invalid:
+            return False     
+    # can't move to another hallway
     if room_owner[end_room] not in [None, pod_type]:
         return False
     return True
@@ -262,12 +299,20 @@ def is_valid_target(start_node_id, target_node_id, pod_type, places):
 rooms = {
     'l': 'h1',
     'm': 'h1',
+    't': 'h1',
+    'u': 'h1',
     'n': 'h2',
     'o': 'h2',
+    'v': 'h2',
+    'w': 'h2',
     'p': 'h3',
     'q': 'h3',
+    'x': 'h3',
+    'y': 'h3',
     'r': 'h4',
-    's': 'h4'
+    's': 'h4',
+    'z': 'h4',
+    '$': 'h4'
 }
 for c in 'abcdefghijk':
     rooms[c] = 'main'
@@ -307,11 +352,11 @@ def parse_input_new(input):
     graph = get_extended_default_graph()
     node_dict = {
         (2,3): 'l',
-        (3,3): 'x',
+        (3,3): 'u',
         (2,5): 'n',
-        (3,5): 'y',
+        (3,5): 'w',
         (2,7): 'p',
-        (3,7): 'z',
+        (3,7): 'y',
         (2,9): 'r',
         (3,9): '$'
     }
@@ -350,4 +395,6 @@ def display_graph(g):
     print(string)
     print(f"###{nodes['l'].get('occupied', '.')}#{nodes['n'].get('occupied', '.')}#{nodes['p'].get('occupied', '.')}#{nodes['r'].get('occupied', '.')}###")
     print(f"  #{nodes['m'].get('occupied', '.')}#{nodes['o'].get('occupied', '.')}#{nodes['q'].get('occupied', '.')}#{nodes['s'].get('occupied', '.')}#")
+    print(f"  #{nodes['t'].get('occupied', '.')}#{nodes['v'].get('occupied', '.')}#{nodes['x'].get('occupied', '.')}#{nodes['z'].get('occupied', '.')}#")
+    print(f"  #{nodes['u'].get('occupied', '.')}#{nodes['w'].get('occupied', '.')}#{nodes['y'].get('occupied', '.')}#{nodes['$'].get('occupied', '.')}#")
     print("  #########")
