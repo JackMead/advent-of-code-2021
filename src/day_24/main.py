@@ -19,7 +19,7 @@ def get_max_monad(lines):
 
 def get_possible_monads_from_largest_first():
     max_monad = 99999999999999
-    min_monad = 11111111111111 # 11111111111111
+    min_monad = 99999991111111 # 11111111111111
     for i in range(max_monad, min_monad, -1):
         s = str(i)
         if '0' in s:
@@ -49,11 +49,11 @@ def is_valid_monad(monad, instruction_blocks):
     global cache
     for i in range(len(instruction_blocks)):
         instructions = instruction_blocks[i]
+        w,x,y,z = read_input(instructions[0], int(monad[i]), w, x, y, z)
         w0,x0,y0,z0 = w,x,y,z
         if (i, w, x, y, z) in cache:
             w,x,y,z = cache[(i,w,x,y,z)]
             continue
-        w,x,y,z = read_input(instructions[0], int(monad[i]), w, x, y, z)
 
         for instruction in instructions[1:]:
             w,x,y,z = process_instruction(instruction, w, x, y, z)
