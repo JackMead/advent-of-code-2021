@@ -5,10 +5,17 @@ def run():
     lines = load_txt_file('./src/day_24/input.txt')
     max_monad = get_max_monad(lines)
     print(f"Day 24 Q1: max monad = {max_monad}")
+    min_monad = get_min_monad(lines)
+    print(f"Day 24 Q2: min monad = {min_monad}")
 
-    print(f"Day 24 Q2: ")
+def get_min_monad(lines):
+    instruction_blocks = parse_lines(lines)
+    for monad in get_possible_monads_from_smallest_first():
+        if is_valid_monad(monad, instruction_blocks):
+            return monad
+    # return rather than except for profiling stats to show
+    return 0
 
-# @add_profile
 def get_max_monad(lines):
     instruction_blocks = parse_lines(lines)
     for monad in get_possible_monads_from_largest_first():
@@ -19,15 +26,20 @@ def get_max_monad(lines):
     raise Exception("No valid monads")
 
 def get_possible_monads_from_largest_first():
-    max_monad = 99999999999999
-    min_monad = 11111111111111 # 11111111111111
-    # try increasing instead
-    for i in range(min_monad, max_monad + 1):
+    # bounds are answers established by hand...
+    max_monad = 12934998949199
+    min_monad = 11711691612189 
+    for i in range(max_monad, min_monad, -1):
         s = str(i)
         if '0' in s:
             continue
         yield s
-    for i in range(max_monad, min_monad, -1):
+
+def get_possible_monads_from_smallest_first():
+    # bounds are answers established by hand...
+    max_monad = 12934998949199
+    min_monad = 11711691612189 
+    for i in range(min_monad, max_monad + 1):
         s = str(i)
         if '0' in s:
             continue
@@ -56,15 +68,16 @@ def is_valid_monad(monad, instruction_blocks):
     global cache
     for i in range(len(instruction_blocks)):
         m = monad[i]
-        if (i, m, w, x, y, z) in cache:
-            w,x,y,z = cache[(i,m,w,x,y,z)]
+        if (i, m, z) in cache:
+            z = cache[(i,m,z)]
             continue
-        w0,x0,y0,z0 = w,x,y,z
+        z0 = z
         instructions = instruction_blocks[i]
-        w,x,y,z = read_input(instructions[0], int(m), w, x, y, z)
+        w = int(m)
         for instruction in instructions[1:]:
             w,x,y,z = process_instruction(instruction, w, x, y, z)
-        cache[(i, m, w0, x0, y0, z0)] = (w,x,y,z)
+        
+        cache[(i, m, z0)] = z
     return z == 0    
 
 add = lambda x, y: x + y
