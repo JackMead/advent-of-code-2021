@@ -8,18 +8,25 @@ def run():
 
     print(f"Day 24 Q2: ")
 
-@add_profile
+# @add_profile
 def get_max_monad(lines):
     instruction_blocks = parse_lines(lines)
     for monad in get_possible_monads_from_largest_first():
         if is_valid_monad(monad, instruction_blocks):
             return monad
+    # return rather than except for profiling stats to show
     return 0
     raise Exception("No valid monads")
 
 def get_possible_monads_from_largest_first():
     max_monad = 99999999999999
-    min_monad = 99999991111111 # 11111111111111
+    min_monad = 11111111111111 # 11111111111111
+    # try increasing instead
+    for i in range(min_monad, max_monad + 1):
+        s = str(i)
+        if '0' in s:
+            continue
+        yield s
     for i in range(max_monad, min_monad, -1):
         s = str(i)
         if '0' in s:
@@ -48,17 +55,17 @@ def is_valid_monad(monad, instruction_blocks):
     w,x,y,z = 0,0,0,0
     global cache
     for i in range(len(instruction_blocks)):
-        instructions = instruction_blocks[i]
-        w,x,y,z = read_input(instructions[0], int(monad[i]), w, x, y, z)
-        w0,x0,y0,z0 = w,x,y,z
-        if (i, w, x, y, z) in cache:
-            w,x,y,z = cache[(i,w,x,y,z)]
+        m = monad[i]
+        if (i, m, w, x, y, z) in cache:
+            w,x,y,z = cache[(i,m,w,x,y,z)]
             continue
-
+        w0,x0,y0,z0 = w,x,y,z
+        instructions = instruction_blocks[i]
+        w,x,y,z = read_input(instructions[0], int(m), w, x, y, z)
         for instruction in instructions[1:]:
             w,x,y,z = process_instruction(instruction, w, x, y, z)
-        cache[(i,w0,x0,y0,z0)] = (w,x,y,z)
-    return z == 0
+        cache[(i, m, w0, x0, y0, z0)] = (w,x,y,z)
+    return z == 0    
 
 add = lambda x, y: x + y
 mul = lambda x, y: x * y
