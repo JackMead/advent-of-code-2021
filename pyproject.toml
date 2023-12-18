@@ -12,34 +12,17 @@ python = "^3.9"
 networkx = "^2.6.3"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
+pytest = "^7.4.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-day1 = "src.day_1.main:run"
-day2 = "src.day_2.main:run"
-day3 = "src.day_3.main:run"
-day4 = "src.day_4.main:run"
-day5 = "src.day_5.main:run"
-day6 = "src.day_6.main:run"
-day7 = "src.day_7.main:run"
-day8 = "src.day_8.main:run"
-day9 = "src.day_9.main:run"
-day10 = "src.day_10.main:run"
-day11 = "src.day_11.main:run"
-day12 = "src.day_12.main:run"
-day13 = "src.day_13.main:run"
-day14 = "src.day_14.main:run"
-day15 = "src.day_15.main:run"
-day16 = "src.day_16.main:run"
-day17 = "src.day_17.main:run"
-day18 = "src.day_18.main:run"
-day19 = "src.day_19.main:run"
-day20 = "src.day_20.main:run"
-day21 = "src.day_21.main:run"
-day22 = "src.day_22.main:run"
-day23 = "src.day_23.main:run"
-day24 = "src.day_24.main:run"
+start = "src.entrypoint:run"
+create = "create_day"
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]

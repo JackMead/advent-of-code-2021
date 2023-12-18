@@ -8,7 +8,7 @@
             "name": "Python: Day 5",
             "type": "python",
             "request": "launch",
-            "module": "src.day_5.main",
+            "module": "src.year_2021.day_5.main",
             "console": "integratedTerminal"
         },
         {
