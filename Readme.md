@@ -5,7 +5,7 @@ Solutions to various days from AoC 2021 & 2023
 Assumes you have Python & Poetry installed
 
 Setup: `poetry install`
-Run tests: `poetry run pytest`
+Run tests: `poetry run pytest` (or `poetry run pytest <folder>` for specific tests)
 Run solution for day X: `poetry run start <year> <day>`
 
 Adding new solutions:
