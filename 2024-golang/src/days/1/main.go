@@ -19,7 +19,7 @@ func SolveDay1() {
 
 	answerP2 := scoreSimilarity(arr1, arr2)
 
-	fmt.Printf("Solved day 1 Part 1: %d", answerP2)
+	fmt.Printf("Solved day 1 Part 2: %d", answerP2)
 }
 
 func convertInputToUsefulStructure(day1Input []string) (arr1 []int, arr2 []int) {
